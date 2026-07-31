@@ -22,7 +22,6 @@
   <ItemGroup>
     <None Include="config\config.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="package.json" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="config\firebase-adminsdk.json" CopyToOutputDirectory="Never" />
   </ItemGroup>
 
   <!-- Post-build: assemble the deployable mod folder structure -->

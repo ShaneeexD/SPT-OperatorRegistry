@@ -37,7 +37,6 @@ public class OperatorRegistryPlugin(
     OperatorRegistrationService operatorRegistrationService,
     OperatorCacheService operatorCacheService,
     OperatorAssignmentService operatorAssignmentService,
-    ISptLogger<BotGenerateOperatorPatch> botPatchLogger,
     ISptLogger<ProfileLoadRegistrationPatch> profilePatchLogger,
     ISptLogger<RaidStartCacheRefreshPatch> raidRefreshPatchLogger,
     BotGenerateOperatorPatch botGenerateOperatorPatch,
@@ -77,8 +76,7 @@ public class OperatorRegistryPlugin(
             );
             BotGenerateOperatorPatch.SetDependencies(
                 operatorAssignmentService,
-                operatorCacheService,
-                botPatchLogger
+                operatorCacheService
             );
             RaidStartCacheRefreshPatch.SetDependencies(
                 operatorCacheService,

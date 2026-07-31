@@ -15,7 +15,6 @@ public class BotGenerateOperatorPatch : AbstractPatch
 {
     private static OperatorAssignmentService? _assignment;
     private static OperatorCacheService? _cache;
-    private static ISptLogger<BotGenerateOperatorPatch>? _logger;
 
     private static readonly HashSet<string> _pmcRoles = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -26,12 +25,10 @@ public class BotGenerateOperatorPatch : AbstractPatch
 
     public static void SetDependencies(
         OperatorAssignmentService assignment,
-        OperatorCacheService cache,
-        ISptLogger<BotGenerateOperatorPatch> logger)
+        OperatorCacheService cache)
     {
         _assignment = assignment;
         _cache = cache;
-        _logger = logger;
     }
 
     protected override MethodBase GetTargetMethod()
@@ -54,6 +51,8 @@ public class BotGenerateOperatorPatch : AbstractPatch
         {
             return;
         }
+
+        _cache?.EnsureFresh();
 
         var originalName = bot.Info.Nickname;
         var originalLevel = bot.Info.Level;
