@@ -16,7 +16,7 @@ public record OperatorRegistryConfig
     [JsonPropertyName("maxCacheAgeHours")]
     public int MaxCacheAgeHours { get; set; } = 24;
 
-    // Firebase public client config (anonymous auth, no service account shipped).
+    // Firebase public client config.
     // Override to run standalone against your own Firebase project.
 
     [JsonPropertyName("firebaseProjectId")]
