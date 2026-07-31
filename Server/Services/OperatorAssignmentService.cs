@@ -1,11 +1,9 @@
 using SPTarkov.DI.Annotations;
-using SPTarkov.Server.Core.Models.Utils;
 
 namespace SPTOperatorRegistry.Server.Services;
 
 [Injectable(InjectionType.Singleton)]
 public class OperatorAssignmentService(
-    ISptLogger<OperatorAssignmentService> logger,
     ConfigService configService,
     OperatorCacheService operatorCacheService,
     OperatorRegistrationService operatorRegistrationService
