@@ -1,0 +1,5 @@
+{
+  "database": {
+    "rules": "tools/oracle-vm/database.rules.json"
+  }
+}

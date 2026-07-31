@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <RootNamespace>SPTOperatorRegistry.Server</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <OutputType>Library</OutputType>
+    <Version>1.0.0</Version>
+    <OutputPath>bin\$(Configuration)\$(ProjectName)\$(AssemblyName)\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AssemblyName>SPT-OperatorRegistry.Server</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SPTarkov.Common" Version="4.0.13" />
+    <PackageReference Include="SPTarkov.DI" Version="4.0.13" />
+    <PackageReference Include="SPTarkov.Reflection" Version="4.0.13" />
+    <PackageReference Include="SPTarkov.Server.Core" Version="4.0.13" />
+  </ItemGroup>
+
+  <!-- Copy mod data to output -->
+  <ItemGroup>
+    <None Include="config\config.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="package.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="config\firebase-adminsdk.json" CopyToOutputDirectory="Never" />
+  </ItemGroup>
+
+  <!-- Post-build: assemble the deployable mod folder structure -->
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <RemoveDir Directories="$(ProjectDir)Build\SPT\user\mods\SPT-OperatorRegistry" />
+    <MakeDir Directories="$(ProjectDir)Build\SPT\user\mods\SPT-OperatorRegistry" />
+    <ItemGroup>
+      <OutputDlls Include="$(OutputPath)*.dll"
+                  Exclude="$(OutputPath)SPTarkov.*.dll;
+                           $(OutputPath)SPT.*.dll;
+                           $(OutputPath)Mono.*.dll;
+                           $(OutputPath)Mono.Cecil.*.dll;
+                           $(OutputPath)MonoMod.*.dll;
+                           $(OutputPath)0Harmony.dll;
+                           $(OutputPath)FastCloner.dll;
+                           $(OutputPath)JetBrains.Annotations.dll;
+                           $(OutputPath)MudBlazor.dll;
+                           $(OutputPath)SemanticVersioning.dll;
+                           $(OutputPath)Microsoft.*.dll;
+                           $(OutputPath)Newtonsoft.Json.dll" />
+      <OutputFiles Include="@(OutputDlls)" />
+      <OutputFiles Include="$(OutputPath)SPT-OperatorRegistry.Server.deps.json" />
+      <OutputFiles Include="$(OutputPath)SPT-OperatorRegistry.Server.pdb" />
+      <ConfigFiles Include="$(OutputPath)config\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(OutputFiles)" DestinationFiles="@(OutputFiles->'$(ProjectDir)Build\SPT\user\mods\SPT-OperatorRegistry\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(ConfigFiles)" DestinationFiles="@(ConfigFiles->'$(ProjectDir)Build\SPT\user\mods\SPT-OperatorRegistry\config\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SourceFiles="$(ProjectDir)package.json" DestinationFolder="$(ProjectDir)Build\SPT\user\mods\SPT-OperatorRegistry" />
+  </Target>
+</Project>

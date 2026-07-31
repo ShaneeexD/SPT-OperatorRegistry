@@ -1,0 +1,29 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+[Bb]uild/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.rsuser
+
+# Firebase service account keys (never commit these)
+*-firebase-adminsdk*.json
+firebase-adminsdk*.json
+website-adminsdk.json
+
+# Local mod state / cache (generated at runtime, never ship)
+**/installation_id.json
+**/operator_cache.json
+tools/
+
+# Python
+__pycache__/
+*.pyc
+
+# Misc
+Server/buildcommand.txt

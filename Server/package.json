@@ -1,0 +1,9 @@
+{
+  "name": "SPT-OperatorRegistry",
+  "version": "1.0.0",
+  "description": "Shared community identity system. Anonymously contributes your PMC nickname + level to a community registry, and uses real community operators as PMC bot names in your raids.",
+  "author": "ShaneeexD",
+  "license": "MIT",
+  "main": "SPT-OperatorRegistry.Server.dll",
+  "sptVersion": "4.0.13"
+}
