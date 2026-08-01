@@ -152,7 +152,7 @@ public class OperatorAssignmentService(
             var count = _raidAssignments.Count;
             if (count > 0)
             {
-                logger.Info($"[OperatorRegistry] Raid summary \u2014 {count} PMC bot(s) renamed: {string.Join(", ", _raidAssignments)}");
+                logger.Info($"[OperatorRegistry] Raid summary \u2014 {count} PMC bot(s) renamed.");
             }
             else
             {
