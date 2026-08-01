@@ -37,42 +37,27 @@ public class RaidStartCacheRefreshPatch : AbstractPatch
     [PatchPrefix]
     private static void Prefix()
     {
-        if (_cache == null)
+        if (_cache == null || _assignment == null)
         {
             return;
         }
 
-        var ok = _cache.RefreshBlocking(RefreshTimeout);
-        if (ok)
+        // Only refresh + reset pool on the first Generate call for this raid.
+        if (!_assignment.RaidInitialised)
         {
-            _logger?.Info($"[OperatorRegistry] Raid-start cache refresh complete ({_cache.Operators.Count} operators available).");
-        }
-        else
-        {
-            _logger?.Warning("[OperatorRegistry] Raid-start cache refresh skipped/failed; using existing local cache.");
-        }
+            var ok = _cache.RefreshBlocking(RefreshTimeout);
+            if (ok)
+            {
+                _logger?.Info($"[OperatorRegistry] Raid-start cache refresh complete ({_cache.Operators.Count} operators available).");
+            }
+            else
+            {
+                _logger?.Warning("[OperatorRegistry] Raid-start cache refresh skipped/failed; using existing local cache.");
+            }
 
-        _assignment?.ResetRaidPool();
-        var poolSize = _assignment?.RaidPoolRemaining ?? 0;
-        _logger?.Info($"[OperatorRegistry] Raid operator pool ready ({poolSize} unique operators for this raid).");
-    }
-
-    [PatchPostfix]
-    private static void Postfix()
-    {
-        if (_assignment == null || _logger == null)
-        {
-            return;
-        }
-
-        var count = _assignment.RaidAssignmentCount;
-        if (count > 0)
-        {
-            _logger.Info($"[OperatorRegistry] Raid summary — {count} PMC bot(s) renamed: {_assignment.GetRaidSummary()}");
-        }
-        else
-        {
-            _logger.Info("[OperatorRegistry] Raid summary — no community operators assigned this raid.");
+            _assignment.ResetRaidPool();
+            var poolSize = _assignment.RaidPoolRemaining;
+            _logger?.Info($"[OperatorRegistry] Raid operator pool ready ({poolSize} unique operators for this raid).");
         }
     }
 }

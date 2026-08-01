@@ -1,0 +1,6 @@
+{
+  "enabled": true,
+  "operatorChance": 1.00,
+  "cacheUrl": "http://144.21.60.21/operators",
+  "maxCacheAgeHours": 24
+}

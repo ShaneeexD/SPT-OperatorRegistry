@@ -152,17 +152,9 @@ public class OperatorCacheService(
             {
                 Directory.CreateDirectory(dir);
             }
-            var tmp = _cachePath + ".tmp";
+            var tmp = _cachePath + "." + Guid.NewGuid().ToString("N") + ".tmp";
             File.WriteAllText(tmp, JsonSerializer.Serialize(cache, JsonOptions));
-            // File.Replace requires destination to exist; fall back to Move for first write.
-            if (File.Exists(_cachePath))
-            {
-                File.Replace(tmp, _cachePath, null);
-            }
-            else
-            {
-                File.Move(tmp, _cachePath);
-            }
+            File.Move(tmp, _cachePath, overwrite: true);
         }
         catch (Exception ex)
         {
