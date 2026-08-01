@@ -30,4 +30,7 @@ public record OperatorRegistryConfig
 
     [JsonPropertyName("rtdbRoot")]
     public string RtdbRoot { get; set; } = "operators";
+
+    [JsonPropertyName("onlineOnly")]
+    public bool OnlineOnly { get; set; } = false;
 }

@@ -2,5 +2,6 @@
   "enabled": true,
   "operatorChance": 1.0,
   "cacheUrl": "http://144.21.60.21/operators",
-  "maxCacheAgeHours": 24
+  "maxCacheAgeHours": 24,
+  "onlineOnly": false
 }

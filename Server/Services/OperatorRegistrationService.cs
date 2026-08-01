@@ -131,6 +131,56 @@ public class OperatorRegistrationService(
         }
     }
 
+    public async Task SendHeartbeatAsync()
+    {
+        if (!configService.Config.Enabled || !configService.Config.OnlineOnly)
+        {
+            return;
+        }
+
+        var installationId = installationIdService.InstallationId;
+        if (string.IsNullOrWhiteSpace(installationId))
+        {
+            return;
+        }
+
+        var baseUrl = ResolveDatabaseUrl();
+        if (string.IsNullOrWhiteSpace(baseUrl))
+        {
+            return;
+        }
+
+        try
+        {
+            var token = await firebaseAuthService.GetIdTokenAsync();
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return;
+            }
+
+            var url = $"{baseUrl}presence/{installationId}.json?auth={Uri.EscapeDataString(token)}";
+            var payload = new Dictionary<string, object>
+            {
+                ["lastSeen"] = new Dictionary<string, string> { [".sv"] = "timestamp" },
+            };
+            var (ok, statusCode) = await PutJsonAsync(url, payload);
+
+            if (!ok && (statusCode == HttpStatusCode.Unauthorized || statusCode == HttpStatusCode.Forbidden))
+            {
+                token = await firebaseAuthService.ForceRefreshAsync();
+                if (!string.IsNullOrWhiteSpace(token))
+                {
+                    url = $"{baseUrl}presence/{installationId}.json?auth={Uri.EscapeDataString(token)}";
+                    (ok, statusCode) = await PutJsonAsync(url, payload);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.Warning($"[OperatorRegistry] Heartbeat failed: {ex.Message}");
+        }
+    }
+
     private string ResolveDatabaseUrl()
     {
         var url = configService.Config.FirebaseDatabaseUrl;

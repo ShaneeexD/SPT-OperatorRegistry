@@ -38,6 +38,7 @@ public class OperatorRegistryPlugin(
     OperatorRegistrationService operatorRegistrationService,
     OperatorCacheService operatorCacheService,
     OperatorAssignmentService operatorAssignmentService,
+    PresenceHeartbeatService presenceHeartbeatService,
     DatabaseService databaseService,
     ISptLogger<ProfileLoadRegistrationPatch> profilePatchLogger,
     ISptLogger<RaidStartCacheRefreshPatch> raidRefreshPatchLogger,
@@ -67,6 +68,7 @@ public class OperatorRegistryPlugin(
             await firebaseAuthService.InitialiseAsync();
             operatorCacheService.Initialise(configService.ConfigPath);
             operatorCacheService.Start();
+            presenceHeartbeatService.Start();
 
             var sptVersion = ProgramStatics.SPT_VERSION()?.ToString() ?? "4.0.13";
 

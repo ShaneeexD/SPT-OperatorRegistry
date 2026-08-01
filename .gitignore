@@ -20,6 +20,7 @@ website-adminsdk.json
 **/installation_id.json
 **/operator_cache.json
 tools/
+Release/
 
 # Python
 __pycache__/
