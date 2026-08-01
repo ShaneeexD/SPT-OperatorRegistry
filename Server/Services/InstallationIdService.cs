@@ -16,8 +16,16 @@ public class InstallationIdService(ISptLogger<InstallationIdService> logger)
 
     private string _idPath = string.Empty;
     private string? _installationId;
+    private long? _firstSeen;
 
     public string? InstallationId => _installationId;
+    public long? FirstSeen => _firstSeen;
+    public void SetFirstSeen(long value)
+    {
+        if (_firstSeen == value) return;
+        _firstSeen = value;
+        Persist();
+    }
 
     public void Initialise(string configPath)
     {
@@ -36,6 +44,7 @@ public class InstallationIdService(ISptLogger<InstallationIdService> logger)
                 if (record != null && !string.IsNullOrWhiteSpace(record.InstallationId))
                 {
                     _installationId = record.InstallationId;
+                    _firstSeen = record.FirstSeen;
                     logger.Info($"[OperatorRegistry] Loaded installation UUID: {_installationId}");
                     return;
                 }
@@ -54,9 +63,25 @@ public class InstallationIdService(ISptLogger<InstallationIdService> logger)
         }
     }
 
+    private void Persist()
+    {
+        try
+        {
+            var data = new InstallationIdRecord { InstallationId = _installationId, FirstSeen = _firstSeen };
+            File.WriteAllText(_idPath, JsonSerializer.Serialize(data, JsonOptions));
+        }
+        catch (Exception ex)
+        {
+            logger.Warning($"[OperatorRegistry] Could not persist installation data: {ex.Message}");
+        }
+    }
+
     private sealed record InstallationIdRecord
     {
         [JsonPropertyName("installationId")]
         public string? InstallationId { get; set; }
+
+        [JsonPropertyName("firstSeen")]
+        public long? FirstSeen { get; set; }
     }
 }

@@ -5,6 +5,7 @@ using SPTarkov.Server.Core.Helpers;
 using SPTarkov.Server.Core.Models.Utils;
 using SPTarkov.Server.Core.Utils;
 using SPTarkov.Reflection.Patching;
+using SPTarkov.Server.Core.Services;
 using SPTOperatorRegistry.Server.Patches;
 using SPTOperatorRegistry.Server.Services;
 using Version = SemanticVersioning.Version;
@@ -37,6 +38,7 @@ public class OperatorRegistryPlugin(
     OperatorRegistrationService operatorRegistrationService,
     OperatorCacheService operatorCacheService,
     OperatorAssignmentService operatorAssignmentService,
+    DatabaseService databaseService,
     ISptLogger<ProfileLoadRegistrationPatch> profilePatchLogger,
     ISptLogger<RaidStartCacheRefreshPatch> raidRefreshPatchLogger,
     BotGenerateOperatorPatch botGenerateOperatorPatch,
@@ -76,7 +78,8 @@ public class OperatorRegistryPlugin(
             );
             BotGenerateOperatorPatch.SetDependencies(
                 operatorAssignmentService,
-                operatorCacheService
+                operatorCacheService,
+                databaseService
             );
             RaidStartCacheRefreshPatch.SetDependencies(
                 operatorCacheService,

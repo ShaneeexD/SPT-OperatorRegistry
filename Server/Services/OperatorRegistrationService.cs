@@ -69,13 +69,6 @@ public class OperatorRegistrationService(
             return;
         }
 
-        var token = await firebaseAuthService.GetIdTokenAsync();
-        if (string.IsNullOrWhiteSpace(token))
-        {
-            logger.Warning("[OperatorRegistry] Cannot register: no Firebase id token.");
-            return;
-        }
-
         var baseUrl = ResolveDatabaseUrl();
         if (string.IsNullOrWhiteSpace(baseUrl))
         {
@@ -88,10 +81,9 @@ public class OperatorRegistrationService(
 
         try
         {
-            // Read existing node to preserve firstSeen (upsert, not replace).
-            var existing = await GetJsonAsync<OperatorRecord>($"{baseUrl}{nodePath}.json?auth={Uri.EscapeDataString(token)}");
-
-            var firstSeen = existing?.FirstSeen ?? now;
+            // RTDB rules deny reads (.read: false), so we can't fetch existing firstSeen.
+            // Persist it locally via InstallationIdService so it survives restarts.
+            var firstSeen = installationIdService.FirstSeen ?? now;
             var record = new OperatorRecord
             {
                 Nickname = cleanNickname,
@@ -102,12 +94,34 @@ public class OperatorRegistrationService(
                 LastSeen = now,
             };
 
-            var ok = await PutJsonAsync($"{baseUrl}{nodePath}.json?auth={Uri.EscapeDataString(token)}", record);
+            // Get fresh token for PUT.
+            var token = await firebaseAuthService.GetIdTokenAsync();
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                logger.Warning("[OperatorRegistry] Cannot register: no Firebase id token.");
+                return;
+            }
+
+            var url = $"{baseUrl}{nodePath}.json?auth={Uri.EscapeDataString(token)}";
+            var (ok, statusCode) = await PutJsonAsync(url, record);
+
+            if (!ok && (statusCode == HttpStatusCode.Unauthorized || statusCode == HttpStatusCode.Forbidden))
+            {
+                logger.Info("[OperatorRegistry] RTDB write auth-expired, forcing token refresh and retrying.");
+                token = await firebaseAuthService.ForceRefreshAsync();
+                if (!string.IsNullOrWhiteSpace(token))
+                {
+                    url = $"{baseUrl}{nodePath}.json?auth={Uri.EscapeDataString(token)}";
+                    (ok, statusCode) = await PutJsonAsync(url, record);
+                }
+            }
+
             if (ok)
             {
                 _lastRegisteredAt = now;
                 _lastRegisteredNickname = cleanNickname;
                 _lastRegisteredLevel = safeLevel;
+                installationIdService.SetFirstSeen(firstSeen);
                 logger.Info($"[OperatorRegistry] Registered operator '{cleanNickname}' (L{safeLevel}) to RTDB.");
             }
         }
@@ -180,7 +194,7 @@ public class OperatorRegistrationService(
         return JsonSerializer.Deserialize<T>(json, JsonOptions);
     }
 
-    private async Task<bool> PutJsonAsync<T>(string url, T value)
+    private async Task<(bool ok, HttpStatusCode statusCode)> PutJsonAsync<T>(string url, T value)
     {
         var json = JsonSerializer.Serialize(value, JsonOptions);
         using var request = new HttpRequestMessage(HttpMethod.Put, url);
@@ -191,7 +205,7 @@ public class OperatorRegistrationService(
             var body = await response.Content.ReadAsStringAsync();
             logger.Warning($"[OperatorRegistry] RTDB write failed: {response.StatusCode} {body}");
         }
-        return response.IsSuccessStatusCode;
+        return (response.IsSuccessStatusCode, response.StatusCode);
     }
 
     private sealed class OperatorRecord

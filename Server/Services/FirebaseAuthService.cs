@@ -80,6 +80,27 @@ public class FirebaseAuthService(
         }
     }
 
+    public async Task<string?> ForceRefreshAsync(CancellationToken cancellationToken = default)
+    {
+        await _semaphore.WaitAsync(cancellationToken);
+        try
+        {
+            _idToken = null;
+            _refreshToken = null;
+            _expiresAt = DateTime.MinValue;
+
+            if (!string.IsNullOrWhiteSpace(configService.Config.FirebaseApiKey))
+            {
+                await SignUpAnonymousAsync(cancellationToken);
+            }
+            return _idToken;
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
     private async Task SignUpAnonymousAsync(CancellationToken cancellationToken)
     {
         var apiKey = configService.Config.FirebaseApiKey;

@@ -5,6 +5,7 @@ using SPTarkov.Reflection.Patching;
 using SPTarkov.Server.Core.Constants;
 using SPTarkov.Server.Core.Generators;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
+using SPTarkov.Server.Core.Services;
 using SPTOperatorRegistry.Server.Services;
 
 namespace SPTOperatorRegistry.Server.Patches;
@@ -14,6 +15,7 @@ public class BotGenerateOperatorPatch : AbstractPatch
 {
     private static OperatorAssignmentService? _assignment;
     private static OperatorCacheService? _cache;
+    private static DatabaseService? _database;
 
     private static readonly HashSet<string> _pmcRoles = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -24,10 +26,12 @@ public class BotGenerateOperatorPatch : AbstractPatch
 
     public static void SetDependencies(
         OperatorAssignmentService assignment,
-        OperatorCacheService cache)
+        OperatorCacheService cache,
+        DatabaseService database)
     {
         _assignment = assignment;
         _cache = cache;
+        _database = database;
     }
 
     protected override MethodBase GetTargetMethod()
@@ -79,24 +83,16 @@ public class BotGenerateOperatorPatch : AbstractPatch
         _assignment.RecordAssignment(originalName, originalLevel, op);
     }
 
-    // EFT cumulative XP per level (index 0 = level 1).
-    private static readonly int[] CumulativeXpPerLevel =
-    [
-        0, 1000, 4017, 8432, 14256, 21477, 30023, 39936, 51204, 63723,
-        77563, 93279, 115302, 143253, 177337, 217885, 264432, 316851, 374400, 437465,
-        505161, 577978, 656347, 741150, 836066, 944133, 1066259, 1199423, 1343743, 1499338,
-        1666320, 1846664, 2043349, 2258436, 2492126, 2750217, 3032022, 3337766, 3663831, 4010401,
-        4377662, 4765799, 5182399, 5627732, 6102063, 6630287, 7189442, 7779792, 8401607, 9055144,
-        9740666, 10458431, 11219666, 12024744, 12874041, 13767918, 14706741, 15690872, 16720667, 17816442,
-        19041492, 20360945, 21792266, 23350443, 25098462, 27100775, 29581231, 33028574, 37953544, 44260543,
-        51901513, 60887711, 71228846, 82933459, 96009180, 110462910, 126300949, 144924572, 172016256
-    ];
-
     private static int GetExperienceForLevel(int level)
     {
         if (level <= 1) return 0;
-        if (level - 1 < CumulativeXpPerLevel.Length)
-            return CumulativeXpPerLevel[level - 1];
-        return CumulativeXpPerLevel[^1];
+        if (_database == null) return 0;
+
+        var expTable = _database.GetGlobals().Configuration.Exp.Level.ExperienceTable;
+        if (expTable == null || expTable.Length == 0) return 0;
+
+        // Sum XP for all full levels before the desired level (matches BotLevelGenerator logic).
+        var clampedLevel = Math.Clamp(level, 0, expTable.Length);
+        return expTable.Take(clampedLevel).Sum(entry => entry.Experience);
     }
 }

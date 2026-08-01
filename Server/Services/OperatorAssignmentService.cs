@@ -20,7 +20,7 @@ public class OperatorAssignmentService(
     private DateTime _lastRaidTime = DateTime.MinValue;
     private static readonly TimeSpan RaidGap = TimeSpan.FromSeconds(30);
     private Timer? _summaryTimer;
-    private static readonly TimeSpan SummaryDelay = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan SummaryDelay = TimeSpan.FromSeconds(10);
 
     public void ResetRaidPool()
     {
@@ -33,7 +33,6 @@ public class OperatorAssignmentService(
             _raidAssignments.Clear();
             _raidInitialised = true;
             _lastRaidTime = DateTime.UtcNow;
-            ScheduleSummaryLog();
         }
     }
 
