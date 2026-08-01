@@ -1,6 +1,6 @@
 # SPT-OperatorRegistry
 
-A shared community identity system for SPT players.
+A shared community identity system.
 
 Players running this mod anonymously contribute their PMC identity (nickname + level)
 into a community registry. Other players then see these real community operators used as
